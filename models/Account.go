@@ -12,10 +12,9 @@ type Account struct {
 	username              string
 	accountBalance        float64
 	accountHashedPassword string
-	AccountService
 }
 
-type AccountService interface {
+type IAccountService interface {
 	registerAccount(account Account) Account
 	login(username string, password string)
 	logout()

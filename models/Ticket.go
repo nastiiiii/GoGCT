@@ -18,3 +18,9 @@ type Ticket struct {
 	performanceId int
 	bookingStatus BookingStatus
 }
+
+type ITicketService interface {
+	getPrice(performance Performance, performanceSeat string) float64
+	getPriceByTicket(ticket Ticket) float64
+	changeSeatAvailability(seat string, status BookingStatus)
+}
