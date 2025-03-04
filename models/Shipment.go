@@ -3,18 +3,17 @@ package models
 import "time"
 
 const (
-	Planned BookingStatus = iota
-	Dispatched
-	Delivered
-	Canceled
+	Pending   BookingStatus = "Pending"
+	Shipped   BookingStatus = "Shipped"
+	Delivered BookingStatus = "Delivered"
 )
 
 type Shipment struct {
 	//shipmentID      int
-	dateOfDispatch  time.Time
-	shippingAddress string
-	shipmentStatus  BookingStatus
-	isUrgent        bool
+	DateOfDispatch  time.Time
+	ShippingAddress string
+	ShipmentStatus  BookingStatus
+	IsUrgent        bool
 }
 
 type IShipmentService interface {

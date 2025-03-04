@@ -3,12 +3,12 @@ package models
 // @TODO  figure out enum for tickets
 // @TODO  json back and forth
 
-type BookingStatus int
+type BookingStatus string
 
 const (
-	Booked BookingStatus = iota
-	Payed
-	Taken
+	Booked BookingStatus = "Booked"
+	Payed  BookingStatus = "Payed"
+	Taken  BookingStatus = "Taken"
 )
 
 type Ticket struct {

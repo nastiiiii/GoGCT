@@ -9,10 +9,9 @@ type Review struct {
 	reviewComment string
 	reviewRating  int
 	reviewDate    time.Time
-	ReviewService
 }
 
-type ReviewService interface {
+type IReviewService interface {
 	isConfirmed(account Account, performance Performance) bool
 	createComment(review Review)
 }
