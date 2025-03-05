@@ -12,11 +12,11 @@ const (
 )
 
 type Ticket struct {
-	//ticketId      int
-	transactionId int
-	seat          string
-	performanceId int
-	bookingStatus BookingStatus
+	TicketId      int
+	TransactionId int
+	Seat          string
+	PerformanceId int
+	TicketStatus  BookingStatus
 }
 
 type ITicketService interface {
