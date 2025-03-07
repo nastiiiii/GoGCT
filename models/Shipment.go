@@ -23,6 +23,7 @@ type IShipmentService interface {
 	GetPrice() float64
 }
 
+// @todo implement getters inside
 type Shipment struct {
 	shipmentID      int
 	dateOfDispatch  time.Time
@@ -44,15 +45,17 @@ func (s ShipmentService) CreateShipment(dateOfDispatch time.Time, shippingAddres
 		isUrgent:        isUrgent,
 		service:         s,
 	}
-
-	_, err = s.DB.Exec(
+	var shipmentId int
+	err = s.DB.QueryRow(
 		context.Background(),
 		`INSERT INTO "Shipments" ("dateOfDispatch", "shippingAddress", "shipmentStatus", "isUrgent") VALUES ($1, $2, $3, $4)`,
 		newShipment.dateOfDispatch,
 		StringToJson(shippingAddress),
 		newShipment.shipmentStatus,
 		newShipment.isUrgent,
-	)
+	).Scan(&shipmentId)
+
+	newShipment.shipmentID = shipmentId
 	if err != nil {
 		log.Fatal("Insert failed:", err)
 		return nil, err

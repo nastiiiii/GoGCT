@@ -26,7 +26,7 @@ func (a *AccountPayment) ProcessPayment(amount float64) {
 
 // TransactionService handles transactions
 type TransactionService struct {
-	CartService     *Cart
+	CartService     *CartService
 	PaymentMethod   PaymentStrategy
 	DiscountManager *DiscountManager
 }

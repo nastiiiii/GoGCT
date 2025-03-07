@@ -7,6 +7,8 @@ import (
 	"log"
 )
 
+//all the models requires the getters and setters and basic constructor
+
 func main() {
 	connStr := "postgres://root:beetroot@localhost:5433/GCT"
 
