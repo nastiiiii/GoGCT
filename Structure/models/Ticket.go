@@ -25,12 +25,11 @@ type ITicketService interface {
 }
 
 type Ticket struct {
-	ticketId      int
-	transactionId int
-	seat          string
-	performanceId int
-	ticketStatus  BookingStatus
-	service       ITicketService
+	TicketId      int
+	TransactionId int
+	Seat          string
+	PerformanceId int
+	TicketStatus  BookingStatus
 }
 
 type TicketService struct {

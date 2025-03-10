@@ -33,30 +33,53 @@ type AccountService struct {
 	DB *pgx.Conn
 }
 
-type IAccountService interface {
-	Register(account Models.Account) Models.Account
-	CreatAccountByParams(contactInfo string, isSocialClub bool, userDOB time.Time, username string, password string)
-	Login(username string, password string) (string, error)
-	Logout() bool
-	GetAccountById(id int) Models.Account
-	GetTickets() []Models.Ticket
-	HasAttendedThePerformance(performance Models.Performance) bool
-	UpdateAccount(id int, account Models.Account) Models.Account
-	DeleteAccount(id int) Models.Account
+func (a *AccountService) Register(account Models.Account) (Models.Account, error) {
+	query := `INSERT INTO account (contact_info, is_social_club, user_dob, username, account_hashed_password, account_balance)
+	          VALUES ($1, $2, $3, $4, $5, $6) RETURNING account_id`
+
+	err := a.DB.QueryRow(
+		context.Background(),
+		query,
+		account.ContactInfo,
+		account.IsSocialClub,
+		account.UserDOB,
+		account.Username,
+		account.AccountHashedPassword,
+		account.AccountBalance,
+	).Scan(&account.AccountId)
+
+	if err != nil {
+		return Models.Account{}, errors.New("failed to register account")
+	}
+	return account, nil
 }
 
-func (a *AccountService) Register(account Models.Account) Models.Account {
-	panic("implement me")
+func (a *AccountService) CreateAccountByParams(contactInfo string, isSocialClub bool, userDOB time.Time, username string, password string) (Models.Account, error) {
+	account := Models.NewAccount(contactInfo, isSocialClub, userDOB, username, password)
+	return a.Register(account)
 }
 
 func (a *AccountService) Login(username string, password string) (string, error) {
 	var account Models.Account
-	query := `SELECT * FROM account WHERE username = $1`
-	err := a.DB.QueryRow(context.Background(), query, username).Scan(&account)
+	query := `SELECT account_id, contact_info, is_social_club, user_dob, username, account_hashed_password, account_balance 
+	          FROM account WHERE username = $1`
+	err := a.DB.QueryRow(context.Background(), query, username).Scan(
+		&account.AccountId,
+		&account.ContactInfo,
+		&account.IsSocialClub,
+		&account.UserDOB,
+		&account.Username,
+		&account.AccountHashedPassword,
+		&account.AccountBalance,
+	)
 	if err != nil {
 		return "", errors.New("invalid username or password")
 	}
+
 	err = bcrypt.CompareHashAndPassword([]byte(account.AccountHashedPassword), []byte(password))
+	if err != nil {
+		return "", errors.New("invalid username or password")
+	}
 
 	token, err := GenerateToken(username)
 	if err != nil {
@@ -66,38 +89,92 @@ func (a *AccountService) Login(username string, password string) (string, error)
 }
 
 func (a *AccountService) Logout() bool {
-
-	panic("implement me")
+	// Since JWT tokens are stateless, logging out is typically done on the frontend by removing the token.
+	return true
 }
 
-func (a *AccountService) GetAccountById(id int) Models.Account {
+func (a *AccountService) GetAccountById(id int) (Models.Account, error) {
 	var account Models.Account
-	query := `SELECT * FROM account WHERE id=$1`
-	err := a.DB.QueryRow(context.Background(), query, id).Scan(&account)
+	query := `SELECT account_id, contact_info, is_social_club, user_dob, username, account_hashed_password, account_balance
+	          FROM account WHERE account_id = $1`
+	err := a.DB.QueryRow(context.Background(), query, id).Scan(
+		&account.AccountId,
+		&account.ContactInfo,
+		&account.IsSocialClub,
+		&account.UserDOB,
+		&account.Username,
+		&account.AccountHashedPassword,
+		&account.AccountBalance,
+	)
 	if err != nil {
-		log.Println(err)
+		return Models.Account{}, errors.New("account not found")
 	}
-	return account
+	return account, nil
 }
 
-func (a *AccountService) HasAttendedThePerformance(performance Models.Performance) bool {
-	//TODO implement me
-	panic("implement me")
+func (a *AccountService) UpdateAccount(id int, account Models.Account) (Models.Account, error) {
+	query := `UPDATE account SET contact_info = $1, is_social_club = $2, user_dob = $3, username = $4, account_balance = $5
+	          WHERE account_id = $6 RETURNING account_id`
+
+	err := a.DB.QueryRow(
+		context.Background(),
+		query,
+		account.ContactInfo,
+		account.IsSocialClub,
+		account.UserDOB,
+		account.Username,
+		account.AccountBalance,
+		id,
+	).Scan(&account.AccountId)
+
+	if err != nil {
+		return Models.Account{}, errors.New("failed to update account")
+	}
+	return account, nil
 }
 
-func (a *AccountService) UpdateAccount(id int, account Models.Account) Models.Account {
-	//TODO implement me
-	panic("implement me")
+func (a *AccountService) DeleteAccount(id int) error {
+	query := `DELETE FROM account WHERE account_id = $1`
+	_, err := a.DB.Exec(context.Background(), query, id)
+	if err != nil {
+		return errors.New("failed to delete account")
+	}
+	return nil
 }
 
-func (a *AccountService) DeleteAccount(id int) Models.Account {
-	//TODO implement me
-	panic("implement me")
+func (a *AccountService) GetTickets(accountId int) ([]Models.Ticket, error) {
+	query := `SELECT ticket_id, transaction_id, seat, performance_id, ticket_status FROM tickets WHERE account_id = $1`
+	rows, err := a.DB.Query(context.Background(), query, accountId)
+	if err != nil {
+		return nil, errors.New("could not retrieve tickets")
+	}
+	defer rows.Close()
+
+	var tickets []Models.Ticket
+	for rows.Next() {
+		var ticket Models.Ticket
+		var ticketStatus string // Temporary variable to store ticket_status as string
+
+		err := rows.Scan(&ticket.TicketId, &ticket.TransactionId, &ticket.Seat, &ticket.PerformanceId, &ticketStatus)
+		if err != nil {
+			log.Println("Error scanning ticket:", err)
+			continue
+		}
+
+		// Convert ticketStatus string to BookingStatus type
+		ticket.TicketStatus = Models.BookingStatus(ticketStatus)
+
+		tickets = append(tickets, ticket)
+	}
+	return tickets, nil
 }
 
-func (a *AccountService) CreatAccountByParams(contactInfo string, isSocialClub bool, userDOB time.Time, username string, password string) {
-
-	panic("implement me")
+func (a *AccountService) HasAttendedThePerformance(accountId int, performanceId int) (bool, error) {
+	query := `SELECT COUNT(*) FROM tickets WHERE account_id = $1 AND performance_id = $2 AND ticket_status = $3`
+	var count int
+	err := a.DB.QueryRow(context.Background(), query, accountId, performanceId, Models.Payed).Scan(&count)
+	if err != nil {
+		return false, errors.New("error checking attendance")
+	}
+	return count > 0, nil
 }
-
-func (a *AccountService) GetTickets() []Models.Ticket { panic("implement me") }
