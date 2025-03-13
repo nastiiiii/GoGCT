@@ -1,15 +1,32 @@
 package middleware
 
 import (
-	Service "GCT/Structure/Services"
 	"context"
 	"errors"
 	"github.com/dgrijalva/jwt-go"
 	"net/http"
 	"strings"
+	"time"
 )
 
 var jwtSecret = []byte("super-secret-token-for-testing-jwt@@@")
+var jwtToken = []byte("super-secret-token-for-testing-jwt@@@")
+
+type Claims struct {
+	Username string `json:"username"`
+	jwt.StandardClaims
+}
+
+func GenerateToken(username string) (string, error) {
+	expirationTime := time.Now().Add(5 * time.Minute)
+	claims := &Claims{Username: username, StandardClaims: jwt.StandardClaims{ExpiresAt: expirationTime.Unix()}}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString(jwtToken)
+	if err != nil {
+		return "", err
+	}
+	return tokenString, nil
+}
 
 func ValidateJWT(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -20,7 +37,7 @@ func ValidateJWT(next http.HandlerFunc) http.HandlerFunc {
 		}
 
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
-		claims := &Service.Claims{}
+		claims := &Claims{}
 
 		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -55,4 +72,22 @@ func AuthenticateMiddleware(next http.Handler) http.Handler {
 		ctx := context.WithValue(r.Context(), "USER_TOKEN", tokenString)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+func ParseToken(tokenString string) (*Claims, error) {
+	claims := &Claims{}
+
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		return jwtToken, nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if !token.Valid {
+		return nil, errors.New("invalid token")
+	}
+
+	return claims, nil
 }

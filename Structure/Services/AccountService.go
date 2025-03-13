@@ -1,41 +1,24 @@
 package Services
 
 import (
+	Middleware "GCT/Structure/middleware"
 	Models "GCT/Structure/models"
 	"context"
 	"errors"
-	"github.com/dgrijalva/jwt-go"
 	"github.com/jackc/pgx/v5"
 	"golang.org/x/crypto/bcrypt"
 	"log"
 	"time"
 )
 
-var jwtToken = []byte("super-secret-token-for-testing-jwt@@@")
-
-type Claims struct {
-	Username string `json:"username"`
-	jwt.StandardClaims
-}
-
-func GenerateToken(username string) (string, error) {
-	expirationTime := time.Now().Add(5 * time.Minute)
-	claims := &Claims{Username: username, StandardClaims: jwt.StandardClaims{ExpiresAt: expirationTime.Unix()}}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString(jwtToken)
-	if err != nil {
-		return "", err
-	}
-	return tokenString, nil
-}
-
 type AccountService struct {
 	DB *pgx.Conn
 }
 
+// Approved
 func (a *AccountService) Register(account Models.Account) (Models.Account, error) {
-	query := `INSERT INTO account (contact_info, is_social_club, user_dob, username, account_hashed_password, account_balance)
-	          VALUES ($1, $2, $3, $4, $5, $6) RETURNING account_id`
+	query := `INSERT INTO "Accounts" ("contactInfo", "isSocialClub", "userDOB", username, "accountBalance", "accountHashedPassword")
+	          VALUES ($1, $2, $3, $4, $5, $6) RETURNING "accountID"`
 
 	err := a.DB.QueryRow(
 		context.Background(),
@@ -44,8 +27,8 @@ func (a *AccountService) Register(account Models.Account) (Models.Account, error
 		account.IsSocialClub,
 		account.UserDOB,
 		account.Username,
-		account.AccountHashedPassword,
 		account.AccountBalance,
+		account.AccountHashedPassword,
 	).Scan(&account.AccountId)
 
 	if err != nil {
@@ -59,18 +42,18 @@ func (a *AccountService) CreateAccountByParams(contactInfo string, isSocialClub 
 	return a.Register(account)
 }
 
+// Approved
 func (a *AccountService) Login(username string, password string) (string, error) {
 	var account Models.Account
-	query := `SELECT account_id, contact_info, is_social_club, user_dob, username, account_hashed_password, account_balance 
-	          FROM account WHERE username = $1`
+	query := `SELECT * FROM "Accounts" WHERE username = $1`
 	err := a.DB.QueryRow(context.Background(), query, username).Scan(
 		&account.AccountId,
-		&account.ContactInfo,
 		&account.IsSocialClub,
 		&account.UserDOB,
 		&account.Username,
-		&account.AccountHashedPassword,
 		&account.AccountBalance,
+		&account.AccountHashedPassword,
+		&account.ContactInfo,
 	)
 	if err != nil {
 		return "", errors.New("invalid username or password")
@@ -81,11 +64,37 @@ func (a *AccountService) Login(username string, password string) (string, error)
 		return "", errors.New("invalid username or password")
 	}
 
-	token, err := GenerateToken(username)
+	token, err := Middleware.GenerateToken(username)
 	if err != nil {
 		return "", errors.New("could not generate token")
 	}
 	return token, nil
+}
+
+// Approved
+func (a *AccountService) GetUserByToken(tokenString string) (Models.Account, error) {
+	claims, err := Middleware.ParseToken(tokenString)
+	if err != nil {
+		return Models.Account{}, errors.New("unauthorized: invalid token")
+	}
+
+	var account Models.Account
+	query := `SELECT * FROM "Accounts" WHERE username = $1`
+	err = a.DB.QueryRow(context.Background(), query, claims.Username).Scan(
+		&account.AccountId,
+		&account.IsSocialClub,
+		&account.UserDOB,
+		&account.Username,
+		&account.AccountBalance,
+		&account.AccountHashedPassword,
+		&account.ContactInfo,
+	)
+
+	if err != nil {
+		return Models.Account{}, errors.New("account not found")
+	}
+
+	return account, nil
 }
 
 func (a *AccountService) Logout() bool {
@@ -93,18 +102,18 @@ func (a *AccountService) Logout() bool {
 	return true
 }
 
+// Approved
 func (a *AccountService) GetAccountById(id int) (Models.Account, error) {
 	var account Models.Account
-	query := `SELECT account_id, contact_info, is_social_club, user_dob, username, account_hashed_password, account_balance
-	          FROM account WHERE account_id = $1`
+	query := `SELECT * FROM "Accounts" WHERE "accountID" = $1`
 	err := a.DB.QueryRow(context.Background(), query, id).Scan(
 		&account.AccountId,
-		&account.ContactInfo,
 		&account.IsSocialClub,
 		&account.UserDOB,
 		&account.Username,
-		&account.AccountHashedPassword,
 		&account.AccountBalance,
+		&account.AccountHashedPassword,
+		&account.ContactInfo,
 	)
 	if err != nil {
 		return Models.Account{}, errors.New("account not found")
@@ -112,18 +121,19 @@ func (a *AccountService) GetAccountById(id int) (Models.Account, error) {
 	return account, nil
 }
 
+// Approved
 func (a *AccountService) UpdateAccount(id int, account Models.Account) (Models.Account, error) {
-	query := `UPDATE account SET contact_info = $1, is_social_club = $2, user_dob = $3, username = $4, account_balance = $5
-	          WHERE account_id = $6 RETURNING account_id`
+	query := `UPDATE "Accounts" SET "contactInfo" = $1, "isSocialClub" = $2, "userDOB" = $3, username = $4, "accountBalance" = $5
+	          WHERE "accountID" = $6 RETURNING "accountID"`
 
 	err := a.DB.QueryRow(
 		context.Background(),
 		query,
-		account.ContactInfo,
-		account.IsSocialClub,
-		account.UserDOB,
-		account.Username,
-		account.AccountBalance,
+		&account.ContactInfo,
+		&account.IsSocialClub,
+		&account.UserDOB,
+		&account.Username,
+		&account.AccountBalance,
 		id,
 	).Scan(&account.AccountId)
 
@@ -133,8 +143,9 @@ func (a *AccountService) UpdateAccount(id int, account Models.Account) (Models.A
 	return account, nil
 }
 
+// Approved
 func (a *AccountService) DeleteAccount(id int) error {
-	query := `DELETE FROM account WHERE account_id = $1`
+	query := `DELETE FROM "Accounts" WHERE "accountID" = $1`
 	_, err := a.DB.Exec(context.Background(), query, id)
 	if err != nil {
 		return errors.New("failed to delete account")
