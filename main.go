@@ -1,15 +1,12 @@
 package main
 
 import (
-	Structure "GCT/Structure/Services"
-	Models "GCT/Structure/models"
 	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
 	"log"
 	"net/http"
-	"time"
 )
 
 // all the models requires the getters and setters and basic constructor
@@ -49,44 +46,5 @@ func main() {
 		log.Fatal(err)
 	}
 	fmt.Println(testValue)
-
-	accountService := Structure.AccountService{DB: conn}
-	account := Models.NewAccount("contact", false, time.Now(), "username", "pass")
-
-	newAccount, err := accountService.Register(account)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(newAccount)
-
-	var reviewService Structure.IReviewService
-	reviewService = Structure.ReviewService{DB: conn}
-
-	review := Models.NewReview(2, 2, "review", 4, time.Now())
-
-	createReview, err := reviewService.CreateReview(*review)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(createReview)
-
-	getReviewByAccount, err := reviewService.GetReviewsByAccountId(2)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(getReviewByAccount)
-
-	getReviewByPerformance, err := reviewService.GetReviewsByPerformanceId(3)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(getReviewByPerformance)
-
-	err = reviewService.DeleteReview(5)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	//192.168.108.54
 
 }
