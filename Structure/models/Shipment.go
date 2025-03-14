@@ -18,3 +18,12 @@ type Shipment struct {
 	ShipmentStatus  BookingStatus
 	IsUrgent        bool
 }
+
+func NewShipment(dateOfDispatch time.Time, shippingAddress string, shipmentStatus BookingStatus, isUrgent bool) *Shipment {
+	return &Shipment{
+		DateOfDispatch:  dateOfDispatch,
+		ShippingAddress: shippingAddress,
+		ShipmentStatus:  shipmentStatus,
+		IsUrgent:        isUrgent,
+	}
+}

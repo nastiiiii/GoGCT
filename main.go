@@ -2,12 +2,14 @@ package main
 
 import (
 	Structure "GCT/Structure/Services"
+	Models "GCT/Structure/models"
 	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
 	"log"
 	"net/http"
+	"time"
 )
 
 // all the models requires the getters and setters and basic constructor
@@ -48,75 +50,38 @@ func main() {
 	}
 	fmt.Println(testValue)
 
-	var perService Structure.IPerformanceService
-	perService = Structure.PerformanceService{DB: conn}
+	var shipService Structure.IShipmentService
+	shipService = Structure.ShipmentService{DB: conn}
 
-	//performance := Models.NewPerformance("A:100; B:200; C:300;", "A: 12-true, 13-false, 14-true; B: 15-true, 16-true, 17-true; C: 18-false, 19-false, 20-true;", "NEW", "Descriptive", "actor 2", time.Now())
+	shipment := Models.NewShipment(time.Now(), "address", Models.BookingStatus("Payed"), false)
 
-	/*newPerformance, err := perService.CreatePerformance(performance)
+	newShipment, err := shipService.CreateShipment(*shipment)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(newPerformance)
+	fmt.Println(newShipment)
 
-	getPerformance, err := perService.GetPerformanceById(1)
+	getShipment, err := shipService.GetShipmentById(1)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(getPerformance)*/
-	/*updatePerformance, err := perService.UpdatePerformance(performance, 2)
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println(updatePerformance)
+	fmt.Println(getShipment)
 
-	getByName, err := perService.GetPerformanceByName("NEW")
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println(getByName)
-	*/
-	//deletedPerformance := perService.DeletePerformance(5)
-	//fmt.Println(deletedPerformance)
+	shipmentUpdate := Models.NewShipment(time.Now(), "NEW", Models.BookingStatus("Payed"), true)
 
-	getPerformance, err := perService.GetPerformanceById(1)
+	updateShipment, err := shipService.UpdateShipment(*shipmentUpdate, 1)
 	if err != nil {
 		log.Fatal(err)
 	}
+	fmt.Println(updateShipment)
 
-	getAllSeats, err := perService.GetAllSeats(getPerformance)
+	getShipment, err = shipService.GetShipmentById(1)
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal(err)
 	}
-	fmt.Println(getAllSeats)
+	fmt.Println(getShipment)
 
-	getAllAvailableSeats, err := perService.GetAvailableSeats(getPerformance)
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println(getAllAvailableSeats)
+	deleteShipment := shipService.DeleteShipment(1)
+	fmt.Println(deleteShipment)
 
-	getSeatPriceB, err := perService.GetSeatPrice(getPerformance, "B")
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println(getSeatPriceB)
-
-	getPerformancePrice, err := perService.GetPerformancePrice(getPerformance)
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println(getPerformancePrice)
-
-	changeA12Seat, err := perService.ChangeSeatAvailability(&getPerformance, "A", 14, false)
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println(changeA12Seat)
-
-	getAllSeats, err = perService.GetAllSeats(getPerformance)
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println(getAllSeats)
 }

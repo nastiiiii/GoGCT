@@ -102,7 +102,7 @@ func (a *AccountService) Logout() bool {
 	return true
 }
 
-// Approved
+// Approved TODO CHECK AGAIN
 func (a *AccountService) GetAccountById(id int) (Models.Account, error) {
 	var account Models.Account
 	query := `SELECT * FROM "Accounts" WHERE "accountID" = $1`
