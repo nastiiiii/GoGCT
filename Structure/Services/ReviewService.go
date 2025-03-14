@@ -14,16 +14,17 @@ type ReviewService struct {
 }
 
 type IReviewService interface {
-	CreateComment(review Models.Review) (string, error)
-	CreateReviewByParams(accountId int, performanceId int, reviewComment string, reviewRating int) Models.Review
-	DeleteComment(commentId int)
-	GetReviewsByPerformanceId(performanceId int) []Models.Review
-	GetReviewsByAccountId(accountId int) []Models.Review
+	CreateReview(review Models.Review) (string, error)
+	CreateReviewByParams(accountId int, performanceId int, reviewComment string, reviewRating int) (Models.Review, error)
+	DeleteReview(reviewId int) error
+	GetReviewsByPerformanceId(performanceId int) ([]Models.Review, error)
+	GetReviewsByAccountId(accountId int) ([]Models.Review, error)
 }
 
-func (r *ReviewService) CreateComment(review Models.Review) (string, error) {
-	query := `INSERT INTO reviews (account_id, performance_id, review_comment, review_rating, review_date)
-	          VALUES ($1, $2, $3, $4, $5) RETURNING review_id`
+// Approve
+func (r ReviewService) CreateReview(review Models.Review) (string, error) {
+	query := `INSERT INTO "Reviews" ("accountID", "performanceID", "reviewComment", "reviewRating", "reviewDate")
+	          VALUES ($1, $2, $3, $4, $5) RETURNING "reviewID"`
 
 	err := r.DB.QueryRow(
 		context.Background(),
@@ -42,7 +43,8 @@ func (r *ReviewService) CreateComment(review Models.Review) (string, error) {
 	return "Review successfully created", nil
 }
 
-func (r *ReviewService) CreateReviewByParams(accountId int, performanceId int, reviewComment string, reviewRating int) (Models.Review, error) {
+// Approve
+func (r ReviewService) CreateReviewByParams(accountId int, performanceId int, reviewComment string, reviewRating int) (Models.Review, error) {
 	review := Models.Review{
 		AccountId:     accountId,
 		PerformanceId: performanceId,
@@ -51,7 +53,7 @@ func (r *ReviewService) CreateReviewByParams(accountId int, performanceId int, r
 		ReviewDate:    time.Now(),
 	}
 
-	message, err := r.CreateComment(review)
+	message, err := r.CreateReview(review)
 	if err != nil {
 		return Models.Review{}, err
 	}
@@ -60,8 +62,9 @@ func (r *ReviewService) CreateReviewByParams(accountId int, performanceId int, r
 	return review, nil
 }
 
-func (r *ReviewService) DeleteComment(reviewId int) error {
-	query := `DELETE FROM reviews WHERE review_id = $1`
+// Approve
+func (r ReviewService) DeleteReview(reviewId int) error {
+	query := `DELETE FROM "Reviews" WHERE "reviewID" = $1`
 	result, err := r.DB.Exec(context.Background(), query, reviewId)
 
 	if err != nil {
@@ -76,9 +79,10 @@ func (r *ReviewService) DeleteComment(reviewId int) error {
 	return nil
 }
 
-func (r *ReviewService) GetReviewsByPerformanceId(performanceId int) ([]Models.Review, error) {
-	query := `SELECT review_id, account_id, performance_id, review_comment, review_rating, review_date
-	          FROM reviews WHERE performance_id = $1`
+// Aprrove
+func (r ReviewService) GetReviewsByPerformanceId(performanceId int) ([]Models.Review, error) {
+	query := `SELECT "reviewID", "accountID", "performanceID", "reviewComment", "reviewRating", "reviewDate"
+	          FROM "Reviews" WHERE "performanceID" = $1`
 
 	rows, err := r.DB.Query(context.Background(), query, performanceId)
 	if err != nil {
@@ -100,9 +104,10 @@ func (r *ReviewService) GetReviewsByPerformanceId(performanceId int) ([]Models.R
 	return reviews, nil
 }
 
-func (r *ReviewService) GetReviewsByAccountId(accountId int) ([]Models.Review, error) {
-	query := `SELECT review_id, account_id, performance_id, review_comment, review_rating, review_date
-	          FROM reviews WHERE account_id = $1`
+// Approve
+func (r ReviewService) GetReviewsByAccountId(accountId int) ([]Models.Review, error) {
+	query := `SELECT "reviewID", "accountID", "performanceID", "reviewComment", "reviewRating", "reviewDate"
+	          FROM "Reviews" WHERE "accountID" = $1`
 
 	rows, err := r.DB.Query(context.Background(), query, accountId)
 	if err != nil {

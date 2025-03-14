@@ -50,38 +50,43 @@ func main() {
 	}
 	fmt.Println(testValue)
 
-	var shipService Structure.IShipmentService
-	shipService = Structure.ShipmentService{DB: conn}
+	accountService := Structure.AccountService{DB: conn}
+	account := Models.NewAccount("contact", false, time.Now(), "username", "pass")
 
-	shipment := Models.NewShipment(time.Now(), "address", Models.BookingStatus("Payed"), false)
-
-	newShipment, err := shipService.CreateShipment(*shipment)
+	newAccount, err := accountService.Register(account)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(newShipment)
+	fmt.Println(newAccount)
 
-	getShipment, err := shipService.GetShipmentById(1)
+	var reviewService Structure.IReviewService
+	reviewService = Structure.ReviewService{DB: conn}
+
+	review := Models.NewReview(2, 2, "review", 4, time.Now())
+
+	createReview, err := reviewService.CreateReview(*review)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(getShipment)
+	fmt.Println(createReview)
 
-	shipmentUpdate := Models.NewShipment(time.Now(), "NEW", Models.BookingStatus("Payed"), true)
-
-	updateShipment, err := shipService.UpdateShipment(*shipmentUpdate, 1)
+	getReviewByAccount, err := reviewService.GetReviewsByAccountId(2)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(updateShipment)
+	fmt.Println(getReviewByAccount)
 
-	getShipment, err = shipService.GetShipmentById(1)
+	getReviewByPerformance, err := reviewService.GetReviewsByPerformanceId(3)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(getShipment)
+	fmt.Println(getReviewByPerformance)
 
-	deleteShipment := shipService.DeleteShipment(1)
-	fmt.Println(deleteShipment)
+	err = reviewService.DeleteReview(5)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	//192.168.108.54
 
 }
