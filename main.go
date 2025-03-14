@@ -48,52 +48,75 @@ func main() {
 	}
 	fmt.Println(testValue)
 
-	var account Structure.AccountService
-	account.DB = conn
-	//newAccount := Model.NewAccount("contact", false, time.Now(), "username", "password")
+	var perService Structure.IPerformanceService
+	perService = Structure.PerformanceService{DB: conn}
 
-	/*acc, err := account.Register(newAccount)
+	//performance := Models.NewPerformance("A:100; B:200; C:300;", "A: 12-true, 13-false, 14-true; B: 15-true, 16-true, 17-true; C: 18-false, 19-false, 20-true;", "NEW", "Descriptive", "actor 2", time.Now())
+
+	/*newPerformance, err := perService.CreatePerformance(performance)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(newPerformance)
+
+	getPerformance, err := perService.GetPerformanceById(1)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(getPerformance)*/
+	/*updatePerformance, err := perService.UpdatePerformance(performance, 2)
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println(acc)
+	fmt.Println(updatePerformance)
 
-	stillAccount, err := account.GetAccountById(1)
+	getByName, err := perService.GetPerformanceByName("NEW")
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println(stillAccount)*/
-
-	/*token, err := account.Login("username", "password")
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(token)
-
-	newAccount, err := account.GetUserByToken(token)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(newAccount)
-
-	updatedAccount := models.NewAccount("NEW CONTACT", true, time.Now(), "New user", "password")
-	fmt.Println(updatedAccount)
-
-	newUpdatedAccount, err := account.UpdateAccount(1, updatedAccount)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(newUpdatedAccount)
-	
-	err = account.DeleteAccount(1)
-	if err != nil {
-		log.Fatal(err)
-	}
+	fmt.Println(getByName)
 	*/
-	stillAccount, err := account.GetAccountById(1)
+	//deletedPerformance := perService.DeletePerformance(5)
+	//fmt.Println(deletedPerformance)
+
+	getPerformance, err := perService.GetPerformanceById(1)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	getAllSeats, err := perService.GetAllSeats(getPerformance)
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println(stillAccount)
+	fmt.Println(getAllSeats)
 
+	getAllAvailableSeats, err := perService.GetAvailableSeats(getPerformance)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(getAllAvailableSeats)
+
+	getSeatPriceB, err := perService.GetSeatPrice(getPerformance, "B")
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(getSeatPriceB)
+
+	getPerformancePrice, err := perService.GetPerformancePrice(getPerformance)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(getPerformancePrice)
+
+	changeA12Seat, err := perService.ChangeSeatAvailability(&getPerformance, "A", 14, false)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(changeA12Seat)
+
+	getAllSeats, err = perService.GetAllSeats(getPerformance)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(getAllSeats)
 }
