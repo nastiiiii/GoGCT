@@ -3,6 +3,7 @@ package Services
 import (
 	Models "GCT/Structure/models"
 	"context"
+	"errors"
 	"fmt"
 	"github.com/jackc/pgx/v5"
 	"log"
@@ -15,7 +16,10 @@ type TransactionService struct {
 	DB            *pgx.Conn
 	PaymentMethod PaymentStrategy
 	//TODO Discount Manager
-	//TODO Change payment strategy
+}
+
+func (t *TransactionService) SetPaymentMethod(method PaymentStrategy) {
+	t.PaymentMethod = method
 }
 
 type ITransactionService interface {
@@ -23,10 +27,10 @@ type ITransactionService interface {
 	UpdateTransaction(transactionId int, transaction Models.Transaction) (Models.Transaction, error)
 	DeleteTransaction(transactionId int) bool
 	GetTransactionById(transactionId int) (Models.Transaction, error)
-	GetTransactionByAccount(token string) ([]Models.Transaction, error)
+	GetTransactionByAccount(accountId int) ([]Models.Transaction, error)
 	GetTransactionsByStatus(transactionStatus Models.TransactionStatus) []Models.Transaction
 	GetByConfirmationId(confirmation string) (Models.Transaction, error)
-	//TODO ChangeTransactionStatus()
+	ProcessTransactionPayment(transactionId int) error
 	//TODO Apply Discounts
 }
 
@@ -37,13 +41,14 @@ func (t *TransactionService) GenerateConfirmationNumber() string {
 }
 
 func (t *TransactionService) CreateTransaction(transaction Models.Transaction) (int, error) {
-	query := `INSERT INTO "Tranasactions" 
+	transaction.ConfirmationID = t.GenerateConfirmationNumber()
+	query := `INSERT INTO "Transactions" 
 		("shipmentID", "accountID", "transactionStatus", "ConfirmationID", "totalCost") 
-		VALUES ($1, $2, $3, $4, $5, $6) RETURNING "transactionID"`
+		VALUES ($1, $2, $3, $4, $5) RETURNING "transactionID"`
 	var id int
 	err := t.DB.QueryRow(
 		context.Background(), query,
-		transaction.ShipmentId, transaction.AccountId, transaction.TransactionStatus, transaction.TotalCost,
+		transaction.ShipmentId, transaction.AccountId, transaction.TransactionStatus, transaction.ConfirmationID, transaction.TotalCost,
 	).Scan(&id)
 
 	if err != nil {
@@ -54,13 +59,13 @@ func (t *TransactionService) CreateTransaction(transaction Models.Transaction) (
 }
 
 func (t *TransactionService) UpdateTransaction(transactionId int, transaction Models.Transaction) (Models.Transaction, error) {
-	query := `UPDATE "Trnascations" 
+	query := `UPDATE "Transactions" 
 		SET "shipmentID" = $1, 
 		    "accountID" = $2, 
 		    "transactionStatus" = $3, 
 		    "ConfirmationID" = $4, 
-		    "totalCost" = $5, 
-		WHERE "transactionID" = $7`
+		    "totalCost" = $5 
+		WHERE "transactionID" = $6`
 
 	_, err := t.DB.Exec(
 		context.Background(), query,
@@ -81,7 +86,7 @@ func (t *TransactionService) UpdateTransaction(transactionId int, transaction Mo
 }
 
 func (t *TransactionService) DeleteTransaction(transactionId int) bool {
-	query := `DELETE FROM "Tranasactions" WHERE transactionID = $1`
+	query := `DELETE FROM "Transactions" WHERE "transactionID" = $1`
 	_, err := t.DB.Exec(context.Background(), query, transactionId)
 	if err != nil {
 		log.Println("Error deleting transaction:", err)
@@ -192,6 +197,26 @@ func (t *TransactionService) GetTransactionByAccount(accountId int) ([]Models.Tr
 	}
 
 	return transactions, nil
+}
+
+func (t *TransactionService) ProcessTransactionPayment(transactionID int) error {
+	ticketService := TicketService{DB: t.DB}
+	totalCost := ticketService.GetTicketsPriceByTransaction(transactionID)
+	if t.PaymentMethod == nil {
+		return errors.New("No payment method")
+	}
+	t.PaymentMethod.ProcessPayment(totalCost)
+	transaction, err := t.GetTransactionById(transactionID)
+	if err != nil {
+		return errors.New("Error retrieving transaction:")
+	}
+	transaction.TransactionStatus = Models.Completed
+	transaction.TotalCost = totalCost
+	_, err = t.UpdateTransaction(transactionID, transaction)
+	if err != nil {
+		return errors.New("Error updating transaction:")
+	}
+	return nil
 }
 
 // PaymentStrategy interface

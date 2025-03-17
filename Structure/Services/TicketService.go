@@ -30,16 +30,17 @@ type ITicketService interface {
 	DeleteTicket(ticketId int) bool
 	DeleteTicketsByTransactionId(transactionId int) bool
 	//Update
-	UpdateTicket(id int, ticket Models.Ticket)
+	UpdateTicket(id int, ticket Models.Ticket) (*Models.Ticket, error)
 }
 
 func (t TicketService) CreateTicket(ticket Models.Ticket) (*Models.Ticket, error) {
-	query := `INSERT INTO "Tickets" ("transactionID", "performanceID", "TicketStatus", "Seat") VALUES ($1, $2, $3, $4, $5, $6) RETURNING "ticketID"`
+	query := `INSERT INTO "Tickets" ("transactionID", "performanceID", "TicketStatus", "Seat") VALUES ($1, $2, $3, $4) RETURNING "ticketID"`
 	var id int
 	err := t.DB.QueryRow(context.Background(), query, ticket.TransactionId, ticket.PerformanceId, ticket.TicketStatus, ticket.Seat).Scan(&id)
 	if err != nil {
 		return nil, err
 	}
+	ticket.TicketId = id
 	return &ticket, nil
 }
 
@@ -91,7 +92,7 @@ func (t TicketService) GetTicketById(ticketId int) (*Models.Ticket, error) {
 
 func (t TicketService) GetTicketsByTransactionId(transactionId int) ([]Models.Ticket, error) {
 	var tickets []Models.Ticket
-	query := `SELECT "ticketID", "transactionID", "performanceID", "TicketStatus", "Seat" FROM "Tickets" WHERE transactionID = $1`
+	query := `SELECT "ticketID", "transactionID", "performanceID", "TicketStatus", "Seat" FROM "Tickets" WHERE "transactionID" = $1`
 
 	rows, err := t.DB.Query(context.Background(), query, transactionId)
 	if err != nil {
@@ -153,7 +154,7 @@ func (t TicketService) UpdateTicket(id int, ticket Models.Ticket) (*Models.Ticke
 		SET "transactionID" = $1, 
 		    "performanceID" = $2, 
 		    "TicketStatus" = $3, 
-		    "Seat" = $4,
+		    "Seat" = $4
 			WHERE "ticketID" = $5`
 	_, err := t.DB.Exec(context.Background(), query, &ticket.TransactionId, &ticket.PerformanceId, &ticket.TicketStatus, &ticket.Seat, id)
 	updatedTicket, err := t.GetTicketById(id)

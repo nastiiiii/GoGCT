@@ -17,3 +17,13 @@ type Transaction struct {
 	ConfirmationID    string
 	TotalCost         float64
 }
+
+func NewTransaction(shipmentId int, accountId int) *Transaction {
+	return &Transaction{
+		ShipmentId:        shipmentId,
+		AccountId:         accountId,
+		TransactionStatus: Processing,
+		ConfirmationID:    "",
+		TotalCost:         0,
+	}
+}

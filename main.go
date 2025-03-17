@@ -1,6 +1,7 @@
 package main
 
 import (
+	"GCT/Structure/Services"
 	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -46,5 +47,13 @@ func main() {
 		log.Fatal(err)
 	}
 	fmt.Println(testValue)
+
+	transService := &Services.TransactionService{DB: conn}
+	transService.SetPaymentMethod(&Services.CardPayment{})
+
+	err = transService.ProcessTransactionPayment(1)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 }
