@@ -1,6 +1,7 @@
 package main
 
 import (
+	Controllers "GCT/Structure/Controller"
 	"GCT/Structure/Services"
 	"context"
 	"fmt"
@@ -28,9 +29,8 @@ func getUsers(c *gin.Context) {
 
 func main() {
 
-	//router := gin.Default()
+	router := gin.Default()
 	//router.GET("/users", getUsers)
-	//router.Run("localhost:8000")
 
 	connStr := "postgres://root:beetroot@localhost:5433/GCT"
 
@@ -48,12 +48,10 @@ func main() {
 	}
 	fmt.Println(testValue)
 
-	transService := &Services.TransactionService{DB: conn}
-	transService.SetPaymentMethod(&Services.CardPayment{})
+	accountService := Services.AccountService{DB: conn}
+	Controllers.SetupAccountRouter(router, accountService)
 
-	err = transService.ProcessTransactionPayment(1)
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	// Start the server
+	log.Println("Server is running on port 8080...")
+	router.Run("localhost:8000")
 }

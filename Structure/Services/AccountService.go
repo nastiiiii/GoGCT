@@ -16,11 +16,16 @@ type AccountService struct {
 }
 
 // Approved
-func (a *AccountService) Register(account Models.Account) (Models.Account, error) {
+func (a *AccountService) Register(account Models.Account, password string) (Models.Account, error) {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		log.Fatal(err)
+	}
+	account.AccountHashedPassword = string(hashedPassword)
 	query := `INSERT INTO "Accounts" ("contactInfo", "isSocialClub", "userDOB", username, "accountBalance", "accountHashedPassword")
 	          VALUES ($1, $2, $3, $4, $5, $6) RETURNING "accountID"`
 
-	err := a.DB.QueryRow(
+	err = a.DB.QueryRow(
 		context.Background(),
 		query,
 		account.ContactInfo,
@@ -39,7 +44,7 @@ func (a *AccountService) Register(account Models.Account) (Models.Account, error
 
 func (a *AccountService) CreateAccountByParams(contactInfo string, isSocialClub bool, userDOB time.Time, username string, password string) (Models.Account, error) {
 	account := Models.NewAccount(contactInfo, isSocialClub, userDOB, username, password)
-	return a.Register(account)
+	return a.Register(account, password)
 }
 
 // Approved
@@ -153,6 +158,7 @@ func (a *AccountService) DeleteAccount(id int) error {
 	return nil
 }
 
+// TODO GET ALL TICKETS CHECK FUNCTION
 func (a *AccountService) GetTickets(accountId int) ([]Models.Ticket, error) {
 	query := `SELECT ticket_id, transaction_id, seat, performance_id, ticket_status FROM tickets WHERE account_id = $1`
 	rows, err := a.DB.Query(context.Background(), query, accountId)
@@ -180,6 +186,7 @@ func (a *AccountService) GetTickets(accountId int) ([]Models.Ticket, error) {
 	return tickets, nil
 }
 
+// TODO CHECK FUNCTION
 func (a *AccountService) HasAttendedThePerformance(accountId int, performanceId int) (bool, error) {
 	query := `SELECT COUNT(*) FROM tickets WHERE account_id = $1 AND performance_id = $2 AND ticket_status = $3`
 	var count int
