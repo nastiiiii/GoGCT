@@ -1,7 +1,7 @@
 package Controller
 
 import (
-	"GCT/Structure/Services"
+	"GCT/Structure/Interfaces"
 	"GCT/Structure/models"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -10,10 +10,10 @@ import (
 )
 
 type ReviewController struct {
-	ReviewService Services.IReviewService
+	ReviewService Interfaces.IReviewService
 }
 
-func NewReviewController(reviewService Services.IReviewService) *ReviewController {
+func NewReviewController(reviewService Interfaces.IReviewService) *ReviewController {
 	return &ReviewController{ReviewService: reviewService}
 }
 
@@ -87,7 +87,7 @@ func (rc *ReviewController) GetReviewsByAccountId(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"reviews": reviews})
 }
 
-func SetupReviewRouters(router *gin.Engine, service Services.IReviewService) {
+func SetupReviewRouters(router *gin.Engine, service Interfaces.IReviewService) {
 	controller := NewReviewController(service)
 	reviewRoutes := router.Group("/review")
 	{

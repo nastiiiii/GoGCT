@@ -1,7 +1,7 @@
 package Controller
 
 import (
-	"GCT/Structure/Services"
+	"GCT/Structure/Interfaces"
 	"GCT/Structure/models"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -10,10 +10,10 @@ import (
 )
 
 type ShipmentController struct {
-	shipmentService Services.IShipmentService
+	shipmentService Interfaces.IShipmentService
 }
 
-func NewShipmentController(service Services.IShipmentService) *ShipmentController {
+func NewShipmentController(service Interfaces.IShipmentService) *ShipmentController {
 	return &ShipmentController{
 		service,
 	}
@@ -128,7 +128,7 @@ func (sc *ShipmentController) GetShipmentById(c *gin.Context) {
 	c.JSON(http.StatusOK, shipment)
 }
 
-func SetupShipmentRoutes(router *gin.Engine, service Services.IShipmentService) {
+func SetupShipmentRoutes(router *gin.Engine, service Interfaces.IShipmentService) {
 	controller := NewShipmentController(service)
 
 	shipmentRoutes := router.Group("/shipments")

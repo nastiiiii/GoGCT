@@ -1,6 +1,7 @@
 package Controller
 
 import (
+	"GCT/Structure/Interfaces"
 	"GCT/Structure/Services"
 	"GCT/Structure/models"
 	"github.com/gin-gonic/gin"
@@ -9,10 +10,10 @@ import (
 )
 
 type TransactionController struct {
-	service Services.ITransactionService
+	service Interfaces.ITransactionService
 }
 
-func NewTransactionController(service Services.ITransactionService) *TransactionController {
+func NewTransactionController(service Interfaces.ITransactionService) *TransactionController {
 	return &TransactionController{service: service}
 }
 
@@ -118,7 +119,38 @@ func (tc *TransactionController) ProcessTransactionPayment(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Transaction payment processed successfully"})
 }
 
-func SetupTransactionRoutes(router *gin.Engine, service Services.ITransactionService) {
+func (tc *TransactionController) SetPaymentMethod(c *gin.Context) {
+	// Temporary struct to bind JSON input
+	var request struct {
+		PaymentType string `json:"paymentType"` // Expecting values: "card", "cash", "account"
+	}
+
+	// Parse JSON request body
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input format"})
+		return
+	}
+
+	// Select the appropriate payment method
+	var paymentMethod Services.PaymentStrategy
+	switch request.PaymentType {
+	case "card":
+		paymentMethod = &Services.CardPayment{}
+	case "cash":
+		paymentMethod = &Services.CashPayment{}
+	case "account":
+		paymentMethod = &Services.AccountPayment{}
+	default:
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid payment type. Choose 'card', 'cash', or 'account'."})
+		return
+	}
+
+	tc.service.SetPaymentMethod(paymentMethod)
+
+	c.JSON(http.StatusOK, gin.H{"message": "Payment method set successfully", "paymentType": request.PaymentType})
+}
+
+func SetupTransactionRoutes(router *gin.Engine, service Interfaces.ITransactionService) {
 	tc := NewTransactionController(service)
 	routes := router.Group("/transactions")
 	{
@@ -130,5 +162,6 @@ func SetupTransactionRoutes(router *gin.Engine, service Services.ITransactionSer
 		routes.PUT("/:id", tc.UpdateTransaction)
 		routes.DELETE("/:id", tc.DeleteTransaction)
 		routes.POST("/:id/payment", tc.ProcessTransactionPayment)
+		routes.POST("/payment-method", tc.SetPaymentMethod)
 	}
 }

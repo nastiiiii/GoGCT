@@ -1,38 +1,18 @@
 package Services
 
 import (
+	"GCT/Structure/Util"
 	Models "GCT/Structure/models"
 	"context"
 	"errors"
 	"fmt"
 	"github.com/jackc/pgx/v5"
 	"log"
-	"strconv"
 	"strings"
 )
 
-type Seats struct {
-	Seat         int
-	Availability bool
-}
-
 type PerformanceService struct {
 	DB *pgx.Conn
-}
-
-type IPerformanceService interface {
-	CreatePerformance(p Models.Performance) (int, error)
-	DeletePerformance(id int) bool
-	UpdatePerformance(performance Models.Performance, performanceId int) (Models.Performance, error)
-	GetPerformanceById(performanceId int) (Models.Performance, error)
-	GetPerformanceByName(performanceName string) (Models.Performance, error)
-	GetPerformances() []Models.Performance
-	//five more methods
-	GetAllSeats(performance Models.Performance) (map[string][]Seats, error)
-	GetAvailableSeats(performance Models.Performance) (map[string][]Seats, error)
-	GetSeatPrice(performance Models.Performance, seatBand string) (float64, error)
-	GetPerformancePrice(performance Models.Performance) (map[string]float64, error)
-	ChangeSeatAvailability(performance *Models.Performance, seatBand string, seatNumber int, status bool) (bool, error)
 }
 
 // Approved
@@ -174,19 +154,19 @@ func (s PerformanceService) DeletePerformance(id int) bool {
 }
 
 // Approved
-func (s PerformanceService) GetAllSeats(performance Models.Performance) (map[string][]Seats, error) {
-	return ParseSeatAvailability(performance.SeatAvailability)
+func (s PerformanceService) GetAllSeats(performance Models.Performance) (map[string][]Models.Seats, error) {
+	return Util.ParseSeatAvailability(performance.SeatAvailability)
 }
 
 // Approved
-func (s PerformanceService) GetAvailableSeats(performance Models.Performance) (map[string][]Seats, error) {
-	seatMap, err := ParseSeatAvailability(performance.SeatAvailability)
+func (s PerformanceService) GetAvailableSeats(performance Models.Performance) (map[string][]Models.Seats, error) {
+	seatMap, err := Util.ParseSeatAvailability(performance.SeatAvailability)
 	if err != nil {
 		return nil, err
 	}
 
 	// Filter only available seats
-	availableSeats := make(map[string][]Seats)
+	availableSeats := make(map[string][]Models.Seats)
 	for band, seats := range seatMap {
 		for _, seat := range seats {
 			if seat.Availability {
@@ -200,7 +180,7 @@ func (s PerformanceService) GetAvailableSeats(performance Models.Performance) (m
 
 // Approved
 func (s PerformanceService) GetSeatPrice(performance Models.Performance, seatBand string) (float64, error) {
-	prices, err := ParseSeatPrices(performance.SeatBandPricing)
+	prices, err := Util.ParseSeatPrices(performance.SeatBandPricing)
 	if err != nil {
 		return 0, err
 	}
@@ -215,12 +195,12 @@ func (s PerformanceService) GetSeatPrice(performance Models.Performance, seatBan
 
 // Approved
 func (s PerformanceService) GetPerformancePrice(performance Models.Performance) (map[string]float64, error) {
-	return ParseSeatPrices(performance.SeatBandPricing)
+	return Util.ParseSeatPrices(performance.SeatBandPricing)
 }
 
 // Approved
 func (s PerformanceService) ChangeSeatAvailability(performance *Models.Performance, seatBand string, seatNumber int, status bool) (bool, error) {
-	seatMap, err := ParseSeatAvailability(performance.SeatAvailability)
+	seatMap, err := Util.ParseSeatAvailability(performance.SeatAvailability)
 	if err != nil {
 		return false, err
 	}
@@ -257,78 +237,4 @@ func (s PerformanceService) ChangeSeatAvailability(performance *Models.Performan
 	}
 
 	return true, nil
-}
-
-// utils
-// Parse seat band prices from "A:100; B:200; C:300;" format
-func ParseSeatPrices(data string) (map[string]float64, error) {
-	prices := make(map[string]float64)
-	parts := strings.Split(data, ";") // ["A:100", " B:200", " C:300"]
-
-	for _, part := range parts {
-		part = strings.TrimSpace(part)
-		if part == "" {
-			continue
-		}
-
-		bandData := strings.Split(part, ":") // ["A", "100"]
-		if len(bandData) != 2 {
-			return nil, errors.New("invalid seat price format")
-		}
-
-		price, err := strconv.ParseFloat(strings.TrimSpace(bandData[1]), 64)
-		if err != nil {
-			return nil, err
-		}
-
-		prices[strings.TrimSpace(bandData[0])] = price
-	}
-
-	return prices, nil
-}
-
-// Parse seat availability from "A: 12-true, 13-false, 14-true; B: 15-true, 16-true, 17-true;"
-func ParseSeatAvailability(data string) (map[string][]Seats, error) {
-	seatMap := make(map[string][]Seats)
-	sections := strings.Split(data, ";") // ["A: 12-true, 13-false, 14-true", " B: 15-true, 16-true, 17-true"]
-
-	for _, section := range sections {
-		section = strings.TrimSpace(section)
-		if section == "" {
-			continue
-		}
-
-		parts := strings.Split(section, ":") // ["A", " 12-true, 13-false, 14-true"]
-		if len(parts) != 2 {
-			return nil, errors.New("invalid seat availability format")
-		}
-
-		seatBand := strings.TrimSpace(parts[0])
-		seats := strings.Split(parts[1], ",") // [" 12-true", " 13-false", " 14-true"]
-
-		for _, seat := range seats {
-			seat = strings.TrimSpace(seat)
-			seatParts := strings.Split(seat, "-") // ["12", "true"]
-			if len(seatParts) != 2 {
-				return nil, errors.New("invalid seat entry format")
-			}
-
-			seatNumber, err := strconv.Atoi(strings.TrimSpace(seatParts[0]))
-			if err != nil {
-				return nil, err
-			}
-
-			availability, err := strconv.ParseBool(strings.TrimSpace(seatParts[1]))
-			if err != nil {
-				return nil, err
-			}
-
-			seatMap[seatBand] = append(seatMap[seatBand], Seats{
-				Seat:         seatNumber,
-				Availability: availability,
-			})
-		}
-	}
-
-	return seatMap, nil
 }

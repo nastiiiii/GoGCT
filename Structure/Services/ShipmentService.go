@@ -3,20 +3,11 @@ package Services
 import (
 	Models "GCT/Structure/models"
 	"context"
-	"encoding/json"
 	"errors"
 	"github.com/jackc/pgx/v5"
 	"log"
 	"time"
 )
-
-type IShipmentService interface {
-	CreateShipmentByParams(dateOfDispatch time.Time, shippingAddress string, shipmentStatus Models.BookingStatus, isUrgent bool) (*Models.Shipment, error)
-	CreateShipment(shipment Models.Shipment) (*Models.Shipment, error)
-	UpdateShipment(shipment Models.Shipment, id int) (bool, error)
-	DeleteShipment(id int) error
-	GetShipmentById(id int) (*Models.Shipment, error)
-}
 
 type ShipmentService struct {
 	DB *pgx.Conn
@@ -140,13 +131,4 @@ func (s ShipmentService) GetShipmentById(id int) (*Models.Shipment, error) {
 	}
 
 	return &shipment, nil
-}
-
-// util
-func StringToJson(stringToChange string) []byte {
-	shipmentAddressJSON, err := json.Marshal(stringToChange)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return shipmentAddressJSON
 }

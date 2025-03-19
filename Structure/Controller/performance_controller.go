@@ -1,7 +1,7 @@
 package Controller
 
 import (
-	"GCT/Structure/Services"
+	"GCT/Structure/Interfaces"
 	Models "GCT/Structure/models"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -9,10 +9,10 @@ import (
 )
 
 type PerformanceController struct {
-	service Services.IPerformanceService
+	service Interfaces.IPerformanceService
 }
 
-func NewPerformanceController(service Services.IPerformanceService) *PerformanceController {
+func NewPerformanceController(service Interfaces.IPerformanceService) *PerformanceController {
 	return &PerformanceController{service}
 }
 
@@ -179,7 +179,7 @@ func (pc *PerformanceController) ChangeSeatAvailability(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	
+
 	performance, err := pc.service.GetPerformanceByName(request.PerformanceName)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Performance not found"})
@@ -195,7 +195,7 @@ func (pc *PerformanceController) ChangeSeatAvailability(c *gin.Context) {
 
 }
 
-func SetUpPerformanceRouters(router *gin.Engine, service Services.IPerformanceService) {
+func SetUpPerformanceRouters(router *gin.Engine, service Interfaces.IPerformanceService) {
 	controller := NewPerformanceController(service)
 	performanceRoutes := router.Group("/performance")
 	{

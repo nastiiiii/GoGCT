@@ -13,14 +13,6 @@ type ReviewService struct {
 	DB *pgx.Conn
 }
 
-type IReviewService interface {
-	CreateReview(review Models.Review) (string, error)
-	CreateReviewByParams(accountId int, performanceId int, reviewComment string, reviewRating int) (Models.Review, error)
-	DeleteReview(reviewId int) error
-	GetReviewsByPerformanceId(performanceId int) ([]Models.Review, error)
-	GetReviewsByAccountId(accountId int) ([]Models.Review, error)
-}
-
 // Approve
 func (r ReviewService) CreateReview(review Models.Review) (string, error) {
 	query := `INSERT INTO "Reviews" ("accountID", "performanceID", "reviewComment", "reviewRating", "reviewDate")

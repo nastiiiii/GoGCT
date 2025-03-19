@@ -1,7 +1,7 @@
 package Controller
 
 import (
-	"GCT/Structure/Services"
+	"GCT/Structure/Interfaces"
 	Models "GCT/Structure/models"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -9,10 +9,10 @@ import (
 )
 
 type TicketController struct {
-	service Services.ITicketService
+	service Interfaces.ITicketService
 }
 
-func NewTicketController(service Services.ITicketService) *TicketController {
+func NewTicketController(service Interfaces.ITicketService) *TicketController {
 	return &TicketController{service: service}
 }
 
@@ -133,7 +133,7 @@ func (tc *TicketController) DeleteTicketsByTransactionId(c *gin.Context) {
 	c.JSON(http.StatusNoContent, gin.H{"message": "Ticket deleted"})
 }
 
-func SetupTicketRoutes(router *gin.Engine, service Services.ITicketService) {
+func SetupTicketRoutes(router *gin.Engine, service Interfaces.ITicketService) {
 	tc := NewTicketController(service)
 	tickets := router.Group("/tickets")
 	{
