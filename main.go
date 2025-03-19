@@ -47,9 +47,25 @@ func main() {
 		log.Fatal(err)
 	}
 	fmt.Println(testValue)
+	//todo interface change Service
 
 	accountService := Services.AccountService{DB: conn}
 	Controllers.SetupAccountRouter(router, accountService)
+
+	reviewService := Services.ReviewService{DB: conn}
+	Controllers.SetupReviewRouters(router, reviewService)
+
+	shipmentService := Services.ShipmentService{DB: conn}
+	Controllers.SetupShipmentRoutes(router, shipmentService)
+
+	performanceService := Services.PerformanceService{DB: conn}
+	Controllers.SetUpPerformanceRouters(router, performanceService)
+
+	ticketService := Services.TicketService{DB: conn}
+	Controllers.SetupTicketRoutes(router, ticketService)
+
+	transactionService := Services.TransactionService{DB: conn}
+	Controllers.SetupTransactionRoutes(router, &transactionService)
 
 	// Start the server
 	log.Println("Server is running on port 8080...")

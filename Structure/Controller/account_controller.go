@@ -109,20 +109,45 @@ func (ac *AccountController) GetUserById(c *gin.Context) {
 func (ac *AccountController) UpdateAccount(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid account ID"})
 		return
 	}
-	var account models.Account
-	if err := c.ShouldBind(&account); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	
+	var request struct {
+		ContactInfo    string  `json:"contactInfo"`
+		IsSocialClub   bool    `json:"isSocialClub"`
+		UserDOB        string  `json:"userDOB"`
+		Username       string  `json:"username"`
+		AccountBalance float64 `json:"accountBalance"`
+	}
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input format"})
 		return
 	}
+
+	parsedDOB, err := time.Parse("2006-01-02", request.UserDOB) // Expecting "YYYY-MM-DD"
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid date format. Use YYYY-MM-DD."})
+		return
+	}
+
+	account := models.Account{
+		ContactInfo:    request.ContactInfo,
+		IsSocialClub:   request.IsSocialClub,
+		UserDOB:        parsedDOB,
+		Username:       request.Username,
+		AccountBalance: request.AccountBalance,
+	}
+
 	updatedAccount, err := ac.Services.UpdateAccount(id, account)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
 	c.JSON(http.StatusOK, updatedAccount)
+
 }
 
 func (ac *AccountController) DeleteAccount(c *gin.Context) {
