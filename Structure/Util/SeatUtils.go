@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// Parse seat band prices from "A:100; B:200; C:300;" format
+// ParseSeatPrices Parse seat band prices from "A:100; B:200; C:300;" format
 func ParseSeatPrices(data string) (map[string]float64, error) {
 	prices := make(map[string]float64)
 	parts := strings.Split(data, ";") // ["A:100", " B:200", " C:300"]
@@ -34,7 +34,7 @@ func ParseSeatPrices(data string) (map[string]float64, error) {
 	return prices, nil
 }
 
-// Parse seat availability from "A: 12-true, 13-false, 14-true; B: 15-true, 16-true, 17-true;"
+// ParseSeatAvailability Parse seat availability from "A: 12-true, 13-false, 14-true; B: 15-true, 16-true, 17-true;"
 func ParseSeatAvailability(data string) (map[string][]Models.Seats, error) {
 	seatMap := make(map[string][]Models.Seats)
 	sections := strings.Split(data, ";") // ["A: 12-true, 13-false, 14-true", " B: 15-true, 16-true, 17-true"]

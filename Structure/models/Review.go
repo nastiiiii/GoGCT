@@ -4,6 +4,7 @@ import (
 	"time"
 )
 
+// Review represents entity from the database
 type Review struct {
 	ReviewId      int
 	AccountId     int

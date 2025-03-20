@@ -2,13 +2,14 @@ package models
 
 type TransactionStatus string
 
+// enum represents the transaction status
 const (
 	Processing TransactionStatus = "Processing"
 	Completed  TransactionStatus = "Completed"
 	Canceled   TransactionStatus = "Canceled"
 )
 
-// Transaction struct
+// Transaction represents entity from the database
 type Transaction struct {
 	TransactionID     int
 	ShipmentId        int

@@ -11,11 +11,11 @@ import (
 	"time"
 )
 
+// AccountService implements the database operations and businesses logic related to Account
 type AccountService struct {
 	DB *pgx.Conn
 }
 
-// Approved
 func (a *AccountService) Register(account Models.Account, password string) (Models.Account, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
@@ -47,7 +47,6 @@ func (a *AccountService) CreateAccountByParams(contactInfo string, isSocialClub 
 	return a.Register(account, password)
 }
 
-// Approved
 func (a *AccountService) Login(username string, password string) (string, error) {
 	var account Models.Account
 	query := `SELECT * FROM "Accounts" WHERE username = $1`
@@ -76,7 +75,6 @@ func (a *AccountService) Login(username string, password string) (string, error)
 	return token, nil
 }
 
-// Approved
 func (a *AccountService) GetUserByToken(tokenString string) (Models.Account, error) {
 	claims, err := Middleware.ParseToken(tokenString)
 	if err != nil {
@@ -107,7 +105,6 @@ func (a *AccountService) Logout() bool {
 	return true
 }
 
-// Approved TODO CHECK AGAIN
 func (a *AccountService) GetAccountById(id int) (Models.Account, error) {
 	var account Models.Account
 	query := `SELECT * FROM "Accounts" WHERE "accountID" = $1`
@@ -126,7 +123,6 @@ func (a *AccountService) GetAccountById(id int) (Models.Account, error) {
 	return account, nil
 }
 
-// Approved
 func (a *AccountService) UpdateAccount(id int, account Models.Account) (Models.Account, error) {
 	query := `UPDATE "Accounts" SET "contactInfo" = $1, "isSocialClub" = $2, "userDOB" = $3, username = $4, "accountBalance" = $5
 	          WHERE "accountID" = $6 RETURNING "accountID"`
@@ -148,7 +144,6 @@ func (a *AccountService) UpdateAccount(id int, account Models.Account) (Models.A
 	return account, nil
 }
 
-// Approved
 func (a *AccountService) DeleteAccount(id int) error {
 	query := `DELETE FROM "Accounts" WHERE "accountID" = $1`
 	_, err := a.DB.Exec(context.Background(), query, id)
@@ -158,7 +153,7 @@ func (a *AccountService) DeleteAccount(id int) error {
 	return nil
 }
 
-// TODO GET ALL TICKETS CHECK FUNCTION
+// GetTickets Description: Get Tickets related exactly to the logged in account
 func (a *AccountService) GetTickets(accountId int) ([]Models.Ticket, error) {
 	query := `SELECT ticket_id, transaction_id, seat, performance_id, ticket_status FROM tickets WHERE account_id = $1`
 	rows, err := a.DB.Query(context.Background(), query, accountId)
@@ -186,7 +181,7 @@ func (a *AccountService) GetTickets(accountId int) ([]Models.Ticket, error) {
 	return tickets, nil
 }
 
-// TODO CHECK FUNCTION
+// HasAttendedThePerformance Description: Checks if user has attended the performance
 func (a *AccountService) HasAttendedThePerformance(accountId int, performanceId int) (bool, error) {
 	query := `SELECT COUNT(*) FROM tickets WHERE account_id = $1 AND performance_id = $2 AND ticket_status = $3`
 	var count int

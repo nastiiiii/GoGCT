@@ -11,11 +11,12 @@ import (
 	"strings"
 )
 
+// PerformanceService implements the database operations and businesses logic related to Performance
+// as well as Seats management
 type PerformanceService struct {
 	DB *pgx.Conn
 }
 
-// Approved
 func (s PerformanceService) UpdatePerformance(performance Models.Performance, performanceId int) (Models.Performance, error) {
 	query := `UPDATE "Performances" 
 		SET "seatBandPricing" = $1, 
@@ -45,7 +46,6 @@ func (s PerformanceService) UpdatePerformance(performance Models.Performance, pe
 	return updatedPerformance, nil
 }
 
-// Approved
 func (s PerformanceService) GetPerformanceById(performanceId int) (Models.Performance, error) {
 	var performance Models.Performance
 	query := `SELECT "performanceID" ,"seatBandPricing", "seatAvailibility", "performanceName", 
@@ -66,7 +66,6 @@ func (s PerformanceService) GetPerformanceById(performanceId int) (Models.Perfor
 	return performance, nil
 }
 
-// Approved
 func (s PerformanceService) GetPerformanceByName(performanceName string) (Models.Performance, error) {
 	var performance Models.Performance
 	query := `SELECT "performanceID" ,"seatBandPricing", "seatAvailibility", "performanceName", 
@@ -87,7 +86,6 @@ func (s PerformanceService) GetPerformanceByName(performanceName string) (Models
 	return performance, nil
 }
 
-// Approved
 func (s PerformanceService) GetPerformances() []Models.Performance {
 	var performances []Models.Performance
 	query := `SELECT "performanceID" ,"seatBandPricing", "seatAvailibility", "performanceName", 
@@ -119,7 +117,6 @@ func (s PerformanceService) GetPerformances() []Models.Performance {
 	return performances
 }
 
-// Approved
 func (s PerformanceService) CreatePerformance(p Models.Performance) (int, error) {
 	query := `INSERT INTO "Performances" 
 		("seatBandPricing", "seatAvailibility", "performanceName", 
@@ -141,7 +138,6 @@ func (s PerformanceService) CreatePerformance(p Models.Performance) (int, error)
 	return id, nil
 }
 
-// Approved
 func (s PerformanceService) DeletePerformance(id int) bool {
 	query := `DELETE FROM "Performances" WHERE "performanceID" = $1`
 
@@ -153,12 +149,10 @@ func (s PerformanceService) DeletePerformance(id int) bool {
 	return true
 }
 
-// Approved
 func (s PerformanceService) GetAllSeats(performance Models.Performance) (map[string][]Models.Seats, error) {
 	return Util.ParseSeatAvailability(performance.SeatAvailability)
 }
 
-// Approved
 func (s PerformanceService) GetAvailableSeats(performance Models.Performance) (map[string][]Models.Seats, error) {
 	seatMap, err := Util.ParseSeatAvailability(performance.SeatAvailability)
 	if err != nil {
@@ -178,7 +172,6 @@ func (s PerformanceService) GetAvailableSeats(performance Models.Performance) (m
 	return availableSeats, nil
 }
 
-// Approved
 func (s PerformanceService) GetSeatPrice(performance Models.Performance, seatBand string) (float64, error) {
 	prices, err := Util.ParseSeatPrices(performance.SeatBandPricing)
 	if err != nil {
@@ -193,12 +186,10 @@ func (s PerformanceService) GetSeatPrice(performance Models.Performance, seatBan
 	return price, nil
 }
 
-// Approved
 func (s PerformanceService) GetPerformancePrice(performance Models.Performance) (map[string]float64, error) {
 	return Util.ParseSeatPrices(performance.SeatBandPricing)
 }
 
-// Approved
 func (s PerformanceService) ChangeSeatAvailability(performance *Models.Performance, seatBand string, seatNumber int, status bool) (bool, error) {
 	seatMap, err := Util.ParseSeatAvailability(performance.SeatAvailability)
 	if err != nil {

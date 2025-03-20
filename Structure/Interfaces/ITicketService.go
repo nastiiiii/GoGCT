@@ -3,7 +3,10 @@ package Interfaces
 import Models "GCT/Structure/models"
 
 // Do not forget to chnage aviability
+
+// ITicketService Description: Shows all methods which TicketService is implemented and to which the controllers have access
 type ITicketService interface {
+	//Create
 	CreateTicket(ticket Models.Ticket) (*Models.Ticket, error)
 	//GetPrice
 	GetPriceByTicket(ticket Models.Ticket) float64

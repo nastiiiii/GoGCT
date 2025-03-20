@@ -9,6 +9,7 @@ import (
 	"time"
 )
 
+// ReviewController Description: Used for managing review like create, update, delete and two methods to get by account and performance
 type ReviewController struct {
 	ReviewService Interfaces.IReviewService
 }
@@ -87,6 +88,7 @@ func (rc *ReviewController) GetReviewsByAccountId(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"reviews": reviews})
 }
 
+// SetupReviewRouters setting up the router
 func SetupReviewRouters(router *gin.Engine, service Interfaces.IReviewService) {
 	controller := NewReviewController(service)
 	reviewRoutes := router.Group("/review")

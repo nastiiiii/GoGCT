@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-// TransactionService handles transactions
+// TransactionService implements the database operations and businesses logic related to Transaction
 type TransactionService struct {
 	DB            *pgx.Conn
 	PaymentMethod PaymentStrategy
@@ -102,6 +102,7 @@ func (t *TransactionService) GetTransactionById(transactionId int) (Models.Trans
 	return transaction, nil
 }
 
+// GetTransactionsByStatus Description: to see which transactions haven't been paid yet
 func (t *TransactionService) GetTransactionsByStatus(transactionStatus Models.TransactionStatus) []Models.Transaction {
 	var transactions []Models.Transaction
 	query := `SELECT "transactionID", "shipmentID", "accountID", "transactionStatus", "ConfirmationID", "totalCost" FROM "Transactions" WHERE "transactionStatus" = $1`
@@ -187,6 +188,7 @@ func (t *TransactionService) GetTransactionByAccount(accountId int) ([]Models.Tr
 	return transactions, nil
 }
 
+// ProcessTransactionPayment Description: to process payment by choosen method
 func (t *TransactionService) ProcessTransactionPayment(transactionID int) error {
 	ticketService := TicketService{DB: t.DB}
 	totalCost := ticketService.GetTicketsPriceByTransaction(transactionID)

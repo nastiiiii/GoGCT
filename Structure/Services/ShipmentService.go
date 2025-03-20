@@ -9,11 +9,11 @@ import (
 	"time"
 )
 
+// ShipmentService implements the database operations and businesses logic related to Shipment
 type ShipmentService struct {
 	DB *pgx.Conn
 }
 
-// Approved
 func (s ShipmentService) CreateShipmentByParams(dateOfDispatch time.Time, shippingAddress string, shipmentStatus Models.BookingStatus, isUrgent bool) (*Models.Shipment, error) {
 	var err error
 	newShipment := &Models.Shipment{
@@ -40,7 +40,6 @@ func (s ShipmentService) CreateShipmentByParams(dateOfDispatch time.Time, shippi
 	return newShipment, nil
 }
 
-// Approved
 func (s ShipmentService) CreateShipment(shipment Models.Shipment) (*Models.Shipment, error) {
 	var err error
 	var shipmentId int
@@ -63,7 +62,6 @@ func (s ShipmentService) CreateShipment(shipment Models.Shipment) (*Models.Shipm
 	return &shipment, nil
 }
 
-// Approved
 func (s ShipmentService) UpdateShipment(shipment Models.Shipment, id int) (bool, error) {
 	commandTag, err := s.DB.Exec(
 		context.Background(),
@@ -87,7 +85,6 @@ func (s ShipmentService) UpdateShipment(shipment Models.Shipment, id int) (bool,
 	return true, nil
 }
 
-// Approved
 func (s ShipmentService) DeleteShipment(id int) error {
 	commandTag, err := s.DB.Exec(
 		context.Background(),
@@ -107,7 +104,6 @@ func (s ShipmentService) DeleteShipment(id int) error {
 	return nil
 }
 
-// Approved
 func (s ShipmentService) GetShipmentById(id int) (*Models.Shipment, error) {
 	var shipment Models.Shipment
 	err := s.DB.QueryRow(

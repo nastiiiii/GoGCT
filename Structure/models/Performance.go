@@ -4,10 +4,11 @@ import (
 	"time"
 )
 
+// Performance represents entity from the database
 type Performance struct {
 	PerformanceId          int
 	SeatBandPricing        string
-	SeatAvailability       string
+	SeatAvailability       string // have all seats with their availability
 	PerformanceName        string
 	PerformanceDescription string
 	PerformanceDate        time.Time

@@ -2,11 +2,13 @@ package models
 
 type BookingStatus string
 
+// Represents ticket statuses
 const (
 	Booked BookingStatus = "Booked"
 	Payed  BookingStatus = "Payed"
 )
 
+// Ticket represents entity from the database
 type Ticket struct {
 	TicketId      int
 	TransactionId int

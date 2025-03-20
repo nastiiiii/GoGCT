@@ -9,14 +9,17 @@ import (
 	"time"
 )
 
+// for demo keep here
 var jwtSecret = []byte("super-secret-token-for-testing-jwt@@@")
 var jwtToken = []byte("super-secret-token-for-testing-jwt@@@")
 
+// Claims for creating token based on the username
 type Claims struct {
 	Username string `json:"username"`
 	jwt.StandardClaims
 }
 
+// GenerateToken to create token and get all the information for it
 func GenerateToken(username string) (string, error) {
 	expirationTime := time.Now().Add(5 * time.Minute)
 	claims := &Claims{Username: username, StandardClaims: jwt.StandardClaims{ExpiresAt: expirationTime.Unix()}}
@@ -28,6 +31,7 @@ func GenerateToken(username string) (string, error) {
 	return tokenString, nil
 }
 
+// ValidateJWT used with frontend, in order before doing the request the token will be taken from the header of the request
 func ValidateJWT(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
@@ -57,6 +61,7 @@ func ValidateJWT(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
+// AuthenticateMiddleware checks if the token valid
 func AuthenticateMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")

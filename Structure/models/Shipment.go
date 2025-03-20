@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-// Warning!! you can change the signature of the function if you see needs to be changed, or you can add new one
+// represents shipment status
 const (
 	Pending   BookingStatus = "Pending"
 	Shipped   BookingStatus = "Shipped"

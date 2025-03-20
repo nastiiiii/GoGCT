@@ -9,11 +9,11 @@ import (
 	"time"
 )
 
+// ReviewService implements the database operations and businesses logic related to Review
 type ReviewService struct {
 	DB *pgx.Conn
 }
 
-// Approve
 func (r ReviewService) CreateReview(review Models.Review) (string, error) {
 	query := `INSERT INTO "Reviews" ("accountID", "performanceID", "reviewComment", "reviewRating", "reviewDate")
 	          VALUES ($1, $2, $3, $4, $5) RETURNING "reviewID"`
@@ -35,7 +35,6 @@ func (r ReviewService) CreateReview(review Models.Review) (string, error) {
 	return "Review successfully created", nil
 }
 
-// Approve
 func (r ReviewService) CreateReviewByParams(accountId int, performanceId int, reviewComment string, reviewRating int) (Models.Review, error) {
 	review := Models.Review{
 		AccountId:     accountId,
@@ -54,7 +53,6 @@ func (r ReviewService) CreateReviewByParams(accountId int, performanceId int, re
 	return review, nil
 }
 
-// Approve
 func (r ReviewService) DeleteReview(reviewId int) error {
 	query := `DELETE FROM "Reviews" WHERE "reviewID" = $1`
 	result, err := r.DB.Exec(context.Background(), query, reviewId)
@@ -71,7 +69,6 @@ func (r ReviewService) DeleteReview(reviewId int) error {
 	return nil
 }
 
-// Aprrove
 func (r ReviewService) GetReviewsByPerformanceId(performanceId int) ([]Models.Review, error) {
 	query := `SELECT "reviewID", "accountID", "performanceID", "reviewComment", "reviewRating", "reviewDate"
 	          FROM "Reviews" WHERE "performanceID" = $1`
@@ -96,7 +93,6 @@ func (r ReviewService) GetReviewsByPerformanceId(performanceId int) ([]Models.Re
 	return reviews, nil
 }
 
-// Approve
 func (r ReviewService) GetReviewsByAccountId(accountId int) ([]Models.Review, error) {
 	query := `SELECT "reviewID", "accountID", "performanceID", "reviewComment", "reviewRating", "reviewDate"
 	          FROM "Reviews" WHERE "accountID" = $1`

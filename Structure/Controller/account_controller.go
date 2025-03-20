@@ -9,6 +9,8 @@ import (
 	"time"
 )
 
+// AccountController Description: Account controller responsible
+// for managing accounts like registering a new user, logging it in and managing the details
 type AccountController struct {
 	Services *Services.AccountService
 }
@@ -77,6 +79,8 @@ func (ac *AccountController) Login(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"token": token})
 }
 
+// GetUserByToken Description: it takes the token and provides the user which is logged in after this token
+// (Testing whether token is working and provides correct user)
 func (ac *AccountController) GetUserByToken(c *gin.Context) {
 	token := c.GetHeader("Authorization")
 	if token == "" {
@@ -112,7 +116,7 @@ func (ac *AccountController) UpdateAccount(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid account ID"})
 		return
 	}
-	
+
 	var request struct {
 		ContactInfo    string  `json:"contactInfo"`
 		IsSocialClub   bool    `json:"isSocialClub"`
@@ -163,6 +167,7 @@ func (ac *AccountController) DeleteAccount(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Account deleted"})
 }
 
+// SetupAccountRouter setting up the router
 func SetupAccountRouter(router *gin.Engine, service Services.AccountService) {
 	controller := NewAccountController(service)
 
