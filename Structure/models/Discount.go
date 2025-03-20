@@ -1,93 +1,53 @@
 package models
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+)
 
-//@todo needs to implement better logic for the discounts
-//@todo Discounts to Rules when Database up and working
+type DISCOUNT_TYPE_ENUM string
 
-type DiscountRule interface {
-	ApplyDiscount() float64
-	IsApplicable() bool
-}
+const (
+	Date_Based    DISCOUNT_TYPE_ENUM = "Date-Based"
+	Bulk_Based    DISCOUNT_TYPE_ENUM = "Bulk-Based"
+	Special_Offer DISCOUNT_TYPE_ENUM = "Special-Offer"
+)
 
-type BaseDiscountRule struct {
-	IsActive  bool
-	StartDate time.Time
-	EndDate   time.Time
-}
-
-func (b *BaseDiscountRule) IsApplicable() bool {
-	now := time.Now()
-	return b.IsActive && now.After(b.StartDate) && now.Before(b.EndDate)
+type Discount struct {
+	DiscountId          int                `json:"discount_id"`
+	DiscountName        string             `json:"discount_name"`
+	DiscountValue       float64            `json:"discount_value"`
+	DiscountType        DISCOUNT_TYPE_ENUM `json:"discount_type"`
+	IsRecurring         bool               `json:"is_recurring"`
+	IsActive            bool               `json:"is_active"`
+	AppliesToSocialClub bool               `json:"applies_to_social_club"`
+	CustomLogic         string             `json:"custom_logic"`
+	DiscountCode        string             `json:"discount_code"`
 }
 
 type BulkBasedRule struct {
-	BaseDiscountRule
-	MinBooking int
-	MaxBooking int
-	Percentage float64
+	MinBookings int     `json:"min_bookings"`
+	MaxBookings int     `json:"max_bookings"`
+	Percentage  float64 `json:"percentage"`
 }
 
-// ApplyDiscount implements DiscountRule interface
-func (b *BulkBasedRule) ApplyDiscount() float64 {
-	if b.IsApplicable() {
-		return b.Percentage // Apply discount percentage
-	}
-	return 0.0
-}
-
-// DateBasedRule applies discount if within a valid date range
-type DateBasedRule struct {
-	BaseDiscountRule
-}
-
-// ApplyDiscount implements DiscountRule interface
-func (d *DateBasedRule) ApplyDiscount() float64 {
-	if d.IsApplicable() {
-		return 10.0 // Assume a fixed discount of 10 units
-	}
-	return 0.0
-}
-
-// SpecialOfferRule gives discounts for buying a specific quantity
 type SpecialOfferRule struct {
-	BaseDiscountRule
-	BuyQuantity        int
-	RuleName           string
-	GetQuantity        int
-	DiscountPercentage float64
+	RuleName           string  `json:"rule_name"`
+	BuyQuantity        int     `json:"buy_quantity"`
+	GetQuantity        int     `json:"get_quantity"`
+	DiscountPercentage float64 `json:"discount_percentage"`
+	Active             bool    `json:"active"`
 }
 
-// ApplyDiscount implements DiscountRule interface
-func (s *SpecialOfferRule) ApplyDiscount() float64 {
-	if s.IsApplicable() {
-		return s.DiscountPercentage
+type DateBasedRule struct {
+	Begins time.Time `json:"begins"`
+	Ends   time.Time `json:"ends"`
+}
+
+func (d *Discount) ToCustomLogic() (map[string]interface{}, error) {
+	var customLogic map[string]interface{}
+	if err := json.Unmarshal([]byte(d.CustomLogic), &customLogic); err != nil {
+		return nil, err
 	}
-	return 0.0
-}
-
-type DiscountManager struct {
-	DiscountRules []DiscountRule
-}
-
-// ApplyDiscount calculates the total discount based on applicable rules
-func (dm *DiscountManager) ApplyDiscount() float64 {
-	totalDiscount := 0.0
-	for _, rule := range dm.DiscountRules {
-		if rule.IsApplicable() {
-			totalDiscount += rule.ApplyDiscount()
-		}
-	}
-	return totalDiscount
-}
-
-// GetApplicableDiscounts filters and returns applicable discount rules
-func (dm *DiscountManager) GetApplicableDiscounts() []DiscountRule {
-	var applicableRules []DiscountRule
-	for _, rule := range dm.DiscountRules {
-		if rule.IsApplicable() {
-			applicableRules = append(applicableRules, rule)
-		}
-	}
-	return applicableRules
+	return customLogic, nil
 }
