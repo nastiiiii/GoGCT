@@ -6,6 +6,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
+// TicketService implements the database operations and businesses logic related to Ticket
 type TicketService struct {
 	DB *pgx.Conn
 }
@@ -46,6 +47,7 @@ func (t TicketService) GetPriceByTicket(ticket Models.Ticket) float64 {
 	return price
 }
 
+// GetTicketsPriceByTransaction Description: Get price of the transaction, based which tickets it has processed here because the
 func (t TicketService) GetTicketsPriceByTransaction(transactionId int) float64 {
 	var totalPrice float64
 	tickets, err := t.GetTicketsByTransactionId(transactionId)

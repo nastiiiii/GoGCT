@@ -9,6 +9,8 @@ import (
 	"strconv"
 )
 
+// TransactionController Description: responsible for managing transaction based operation like process the payment
+// and other which are implemented in services
 type TransactionController struct {
 	service Interfaces.ITransactionService
 }
@@ -150,6 +152,7 @@ func (tc *TransactionController) SetPaymentMethod(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Payment method set successfully", "paymentType": request.PaymentType})
 }
 
+// SetupTransactionRoutes setting up the router
 func SetupTransactionRoutes(router *gin.Engine, service Interfaces.ITransactionService) {
 	tc := NewTransactionController(service)
 	routes := router.Group("/transactions")

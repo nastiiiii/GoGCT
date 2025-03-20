@@ -8,6 +8,7 @@ import (
 	"strconv"
 )
 
+// TicketController Description: Manages ticket creation, update, get and delete
 type TicketController struct {
 	service Interfaces.ITicketService
 }
@@ -133,6 +134,7 @@ func (tc *TicketController) DeleteTicketsByTransactionId(c *gin.Context) {
 	c.JSON(http.StatusNoContent, gin.H{"message": "Ticket deleted"})
 }
 
+// SetupTicketRoutes setting up the router
 func SetupTicketRoutes(router *gin.Engine, service Interfaces.ITicketService) {
 	tc := NewTicketController(service)
 	tickets := router.Group("/tickets")

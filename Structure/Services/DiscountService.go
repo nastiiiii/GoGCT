@@ -59,7 +59,7 @@ func (ds *DiscountService) ApplyBestDiscount(transaction *models.Transaction) er
 		}
 
 		// Check if the discount can be applied
-		if ds.isDiscountApplicable(discount, transaction) {
+		if ds.IsDiscountApplicable(discount, transaction) {
 			if discount.DiscountValue > bestDiscountValue {
 				bestDiscountValue = discount.DiscountValue
 			}
@@ -72,7 +72,7 @@ func (ds *DiscountService) ApplyBestDiscount(transaction *models.Transaction) er
 	return nil
 }
 
-func (ds *DiscountService) isDiscountApplicable(discount models.Discount, transaction *models.Transaction) bool {
+func (ds *DiscountService) IsDiscountApplicable(discount models.Discount, transaction *models.Transaction) bool {
 	// Check if discount applies only to Social Club members
 	if discount.AppliesToSocialClub {
 		/*if !ds.isUserSocialClubMember(transaction.AccountId) {

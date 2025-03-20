@@ -9,6 +9,7 @@ import (
 	"time"
 )
 
+// ShipmentController Description: Manages shipment create, update, delete and get
 type ShipmentController struct {
 	shipmentService Interfaces.IShipmentService
 }
@@ -128,6 +129,7 @@ func (sc *ShipmentController) GetShipmentById(c *gin.Context) {
 	c.JSON(http.StatusOK, shipment)
 }
 
+// SetupShipmentRoutes setting up the router
 func SetupShipmentRoutes(router *gin.Engine, service Interfaces.IShipmentService) {
 	controller := NewShipmentController(service)
 

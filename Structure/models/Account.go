@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+// Account represents entity from the database
 type Account struct {
 	AccountId             int
 	ContactInfo           string

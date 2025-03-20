@@ -8,6 +8,9 @@ import (
 	"strconv"
 )
 
+// PerformanceController Description: For managing the Performance entity by adding, deleting or updating. Also has a
+// few methods of getting performance by different parameters. Also, controller gets manages seats and the prices for
+// the seats because each performance has their set of seats as well as their price band.
 type PerformanceController struct {
 	service Interfaces.IPerformanceService
 }
@@ -118,6 +121,7 @@ func (pc *PerformanceController) GetAllSeats(c *gin.Context) {
 	c.JSON(http.StatusOK, seats)
 }
 
+// GetAvailableSeats Description: Retrieves all seats that are currently available (not taken)
 func (pc *PerformanceController) GetAvailableSeats(c *gin.Context) {
 	var request struct {
 		PerformanceName string `json:"performanceName"`
@@ -195,6 +199,7 @@ func (pc *PerformanceController) ChangeSeatAvailability(c *gin.Context) {
 
 }
 
+// SetUpPerformanceRouters setting up the router
 func SetUpPerformanceRouters(router *gin.Engine, service Interfaces.IPerformanceService) {
 	controller := NewPerformanceController(service)
 	performanceRoutes := router.Group("/performance")

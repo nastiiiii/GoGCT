@@ -11,11 +11,10 @@ import (
 	"time"
 )
 
-// TransactionService handles transactions
+// TransactionService implements the database operations and businesses logic related to Transaction
 type TransactionService struct {
 	DB            *pgx.Conn
 	PaymentMethod PaymentStrategy
-	//TODO Discount Manager
 }
 
 func (t *TransactionService) SetPaymentMethod(method PaymentStrategy) {
@@ -102,6 +101,7 @@ func (t *TransactionService) GetTransactionById(transactionId int) (Models.Trans
 	return transaction, nil
 }
 
+// GetTransactionsByStatus Description: to see which transactions haven't been paid yet
 func (t *TransactionService) GetTransactionsByStatus(transactionStatus Models.TransactionStatus) []Models.Transaction {
 	var transactions []Models.Transaction
 	query := `SELECT "transactionID", "shipmentID", "accountID", "transactionStatus", "ConfirmationID", "totalCost" FROM "Transactions" WHERE "transactionStatus" = $1`
@@ -187,17 +187,27 @@ func (t *TransactionService) GetTransactionByAccount(accountId int) ([]Models.Tr
 	return transactions, nil
 }
 
+// ProcessTransactionPayment Description: to process payment by choosen method
 func (t *TransactionService) ProcessTransactionPayment(transactionID int) error {
 	ticketService := TicketService{DB: t.DB}
+	discountService := DiscountService{DB: t.DB}
+
+	transaction, err := t.GetTransactionById(transactionID)
+	if err != nil {
+		return err
+	}
+
 	totalCost := ticketService.GetTicketsPriceByTransaction(transactionID)
 	if t.PaymentMethod == nil {
 		return errors.New("No payment method")
 	}
-	t.PaymentMethod.ProcessPayment(totalCost)
-	transaction, err := t.GetTransactionById(transactionID)
+
+	err = discountService.ApplyBestDiscount(&transaction)
 	if err != nil {
-		return errors.New("Error retrieving transaction:")
+		return errors.New("Error applying discount:")
 	}
+
+	t.PaymentMethod.ProcessPayment(totalCost)
 	transaction.TransactionStatus = Models.Completed
 	transaction.TotalCost = totalCost
 	_, err = t.UpdateTransaction(transactionID, transaction)
